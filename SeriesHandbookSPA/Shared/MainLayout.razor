@@ -1,0 +1,42 @@
+﻿@inherits LayoutComponentBase
+@inject MainStateContainer mainState
+@implements IDisposable
+
+<Layout Style="min-height: 100vh;">
+    <Header Class="header">
+        <div class="float-left" style="padding-top:15px;">
+            <h3 class="text-white font-weight-bold">Series Handbook</h3>
+        </div>
+        <div class="float-right">
+            <Menu Theme="MenuTheme.Dark" Mode="MenuMode.Horizontal">
+                <NavHeader />
+            </Menu>
+        </div>
+    </Header>
+    <Layout>
+        <NavMenu />
+        <Layout Style="padding: 0 24px 24px;">
+            <Breadcrumb Style="margin:16px 0;">
+                <BreadcrumbItem><h2>@mainState.PageName</h2></BreadcrumbItem>
+            </Breadcrumb>
+            <Content Style="margin:0 16px;">
+                <div class="site-layout-background" style="padding: 24px; min-height: 360px">
+                    @Body
+                </div>
+            </Content>
+        </Layout>
+    </Layout>
+</Layout>
+
+@code {
+    protected override void OnInitialized()
+    {
+        mainState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        mainState.OnChange -= StateHasChanged;
+    }
+
+}

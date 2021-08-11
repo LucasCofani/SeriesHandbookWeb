@@ -1,0 +1,9 @@
+﻿@inject NavigationManager Navigation
+
+@code{ 
+    override protected void OnInitialized()
+    {
+        Console.WriteLine("Tem que redirecionar!");
+        Navigation.NavigateTo("/Login");
+    }
+}

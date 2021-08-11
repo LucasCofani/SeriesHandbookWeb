@@ -1,0 +1,66 @@
+﻿@using System.ComponentModel.DataAnnotations;
+@using System.Text.Json;
+@inject AuthenticationStateProvider authProvider
+@inject IJSRuntime jsRunTime
+@inject NavigationManager Navigation
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject NavigationManager Navigation
+
+@page "/Login"
+
+<CardGrid Style="width:50%">
+    <Form Model="@model"
+          OnFinish="OnFinish"
+          OnFinishFailed="OnFinishFailed"
+          LabelColSpan="6"
+          WrapperColSpan="14">
+        <FormItem Label="Usuario">
+            <Input @bind-Value="@context.Username" />
+        </FormItem>
+        <FormItem Label="Senha">
+            <InputPassword @bind-Value="@context.Password" />
+        </FormItem>
+        <FormItem WrapperColOffset="8" WrapperColSpan="16">
+            <Button Type="@ButtonType.Primary" HtmlType="submit">
+                Entrar
+            </Button>
+        </FormItem>
+    </Form>
+</CardGrid>
+<CardGrid Style="width: 50%; box-shadow: 1px 0 0 0 #f0f0f0, 0 1px 0 0 #ffffff, 1px 1px 0 0 #f0f0f0, 1px 0 0 0 #f0f0f0 inset, 0 1px 0 0 #f0f0f0 inset;">
+    <div>
+        <Button Block @onclick="LogIn"> Entrar com a conta Google </Button>
+    </div>
+</CardGrid>
+@code
+{
+    public class Model
+    {
+        [Required]
+        public string Username { get; set; }
+        [Required]
+        public string Password { get; set; }
+    }
+
+    private Model model = new Model();
+
+    private void OnFinish(EditContext editContext)
+    {
+        Console.WriteLine($"Success:{JsonSerializer.Serialize(model)}");
+    }
+
+    private void OnFinishFailed(EditContext editContext)
+    {
+        Console.WriteLine($"Failed:{JsonSerializer.Serialize(model)}");
+    }
+    private async Task LogIn()
+    {
+        var token = await jsRunTime.InvokeAsync<String>("LoginGoogle");
+        if (!string.IsNullOrEmpty(token))
+        {
+            await localStorage.SetItemAsync("tokenJWT", token);
+            await ((CustomAuthenticationStateProvider)authProvider).MarkUserAsAuthenticated();
+            Navigation.NavigateTo("/");
+        }
+    }
+}

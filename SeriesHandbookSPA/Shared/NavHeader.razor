@@ -1,0 +1,40 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider authProvider
+@inject IJSRuntime jsRunTime
+@inject NavigationManager Navigation
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<AuthorizeView>
+    <Authorized>
+        <MenuItem Key="1">
+            <a>@(context.User.Claims.FirstOrDefault(p =>p.Type == "name").Value)</a>
+        </MenuItem>
+        <MenuItem Key="2">
+            <a @onclick="SignOut" @onclick:stopPropagation="true">Sair</a>
+        </MenuItem>
+    </Authorized>
+    <NotAuthorized>
+        <MenuItem Key="2">
+            <a @onclick="LogIn" @onclick:stopPropagation="true">Entrar</a>
+        </MenuItem>
+    </NotAuthorized>
+</AuthorizeView>
+<style>
+    .danger {
+        background-color: #fff1f0;
+    }
+</style>
+
+@code {
+    private async Task LogIn()
+    {
+        var token = await jsRunTime.InvokeAsync<String>("Login");
+        await localStorage.SetItemAsync("tokenJWT", token);
+        await ((CustomAuthenticationStateProvider)authProvider).MarkUserAsAuthenticated();
+    }
+    private async Task SignOut()
+    {
+        await ((CustomAuthenticationStateProvider)authProvider).MarkUserAsLoggedOut();
+
+    }
+}

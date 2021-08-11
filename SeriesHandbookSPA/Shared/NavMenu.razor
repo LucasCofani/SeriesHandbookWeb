@@ -1,0 +1,37 @@
+﻿<Sider Collapsible Collapsed=@collapsed OnCollapse=@onCollapse>
+    <Menu Mode="MenuMode.Inline">
+        @{
+            RenderFragment sub1Title =
+            @<span>
+                <Icon Type="user" Theme="outline" />
+                <span>Series</span>
+            </span>;
+        }
+        <SubMenu Key="sub1" TitleTemplate=sub1Title>
+            <MenuItem Key="1">Series</MenuItem>
+            <MenuItem Key="2">Sua lista</MenuItem>
+        </SubMenu>
+        @{
+            RenderFragment sub2Title =
+            @<span>
+                <Icon Type="team" Theme="outline" />
+                <span>Filmes</span>
+            </span>;
+        }
+        <SubMenu Key="sub2" TitleTemplate=sub2Title>
+            <MenuItem Key="3">Filmes</MenuItem>
+            <MenuItem Key="4">Sua lista</MenuItem>
+        </SubMenu>
+    </Menu>
+</Sider>
+
+@code {
+    bool collapsed;
+
+    void onCollapse(bool collapsed)
+    {
+        Console.WriteLine(collapsed);
+        this.collapsed = collapsed;
+    }
+
+}
