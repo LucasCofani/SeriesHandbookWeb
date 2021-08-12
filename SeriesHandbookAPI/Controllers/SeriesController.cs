@@ -26,7 +26,24 @@ namespace SeriesHandbookAPI.Controllers
                 return StatusCode(412, res);
         }
 
-        
+        [HttpPost("detail/{id}/bookmark")]
+        public async Task<IActionResult> SetDetails(int id)
+        {
+            await _repo.SetBookmark(id);            
+            return Ok();           
+        }
+        [HttpGet("detail/{id}/bookmark")]
+        public async Task<IActionResult> GetBookmarkDetails(int id)
+        {
+            return Ok(await _repo.GetBookmarkDetail(id));
+        }
+
+        [HttpGet("bookmark")]
+        public async Task<IActionResult> GetBookmark()
+        {
+            return Ok(await _repo.GetBookmarkAll());
+        }
+
         [HttpGet("{query}")]
         public async Task<IActionResult> GetSearch(string query)
         {

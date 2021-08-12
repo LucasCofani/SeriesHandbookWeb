@@ -1,0 +1,63 @@
+﻿@page "/SeriesBookmark"
+@inject SeriesHandbookHandler handler
+@inject MainStateContainer mainState
+<Tabs DefaultActiveKey="1" @bind-ActiveKey="@tabKey" OnChange="Refresh">
+    <TabPane Key="1">
+        <TabTemplate>Favoritos</TabTemplate>
+        <ChildContent>
+            @if (handler.SeriesBookmark != null)
+            {
+                <AntList DataSource="@handler.SeriesBookmark" ItemLayout="@ListItemLayout.Vertical" TItem="ResponseWrapper<SeriesWrapper>" OnItemClick="GetDetail">
+                    <ChildContent Context="item">
+                        <ListItem Extra="@GetCover(item.Info.poster_path)">
+                            <ListItemMeta Description="@item.Info.original_name">
+                                <TitleTemplate>
+                                    @item.Info.name
+                                </TitleTemplate>
+                            </ListItemMeta>
+                            @item.Info.overview
+                        </ListItem>
+                    </ChildContent>
+                </AntList>
+            }
+        </ChildContent>
+    </TabPane>
+    <TabPane Key="2">
+        <TabTemplate>Detalhes</TabTemplate>
+        <ChildContent>
+            <SeriesHandbookSPA.Components.SeriesDetail handler="@handler"></SeriesHandbookSPA.Components.SeriesDetail>
+        </ChildContent>
+    </TabPane>
+</Tabs>
+@code {
+    private string tabKey = "1";
+
+    protected override async void OnInitialized()
+    {
+        await mainState.SetPageName("Series - Bookmark");
+        await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetSeriesBookmark);
+        StateHasChanged();
+        mainState.OnChange += StateHasChanged;
+    }
+
+    private RenderFragment GetCover(string url)
+    {
+        return@<Image Width="200px" Src="@(string.Concat("https://image.tmdb.org/t/p/original/", url))" />;
+    }
+
+    private async Task GetDetail(ResponseWrapper<SeriesWrapper> result)
+    {
+        handler.Id = result.Info.id.ToString();
+        await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetSerieDetail);
+        tabKey = "2";
+    }
+
+    private async Task Refresh()
+    {
+        if (tabKey == "1") {
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetSeriesBookmark);
+            StateHasChanged();
+        }
+    }
+
+}

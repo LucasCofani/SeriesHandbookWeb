@@ -4,6 +4,7 @@ using SeriesHandbookShared.Models.TMDB;
 using SeriesHandbookShared.Models.TMDB.Movies;
 using SeriesHandbookShared.Models.TMDB.Series;
 using SeriesHandbookShared.Models.TMDB.Search;
+using System.Collections.Generic;
 
 namespace SeriesHandbookSPA.Network
 {
@@ -30,5 +31,13 @@ namespace SeriesHandbookSPA.Network
         Task<ResponseWrapper<SearchWrapper>> GetSerieSearchPrevious(string query);
         [Get("/api/Series/{query}/{page}")]
         Task<ResponseWrapper<SearchWrapper>> GetSerieSearchPage(string query, string page);
+        
+        [Post("/api/Series/detail/{id}/bookmark")]
+        Task SetSerieBookmark(string id);
+        [Get("/api/Series/detail/{id}/bookmark")] 
+        Task<bool> GetSerieBookmarkDetail(string id);
+        [Get("/api/Series/bookmark")]
+        Task<List<ResponseWrapper<SeriesWrapper>>> GetSerieBookmark();
+        
     }
 }

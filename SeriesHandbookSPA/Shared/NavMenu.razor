@@ -3,18 +3,18 @@
         @{
             RenderFragment sub1Title =
             @<span>
-                <Icon Type="user" Theme="outline" />
+                <Icon Type="desktop" Theme="outline" />
                 <span>Series</span>
             </span>;
         }
         <SubMenu Key="sub1" TitleTemplate=sub1Title>
-            <MenuItem Key="1">Series</MenuItem>
-            <MenuItem Key="2">Sua lista</MenuItem>
+            <MenuItem Key="1"><a href="/">Series</a></MenuItem>
+            <MenuItem Key="2"><a href="/SeriesBookmark">Sua lista</a></MenuItem>
         </SubMenu>
         @{
             RenderFragment sub2Title =
             @<span>
-                <Icon Type="team" Theme="outline" />
+                 <Icon Type="video-camera" Theme="outline" />
                 <span>Filmes</span>
             </span>;
         }
@@ -30,7 +30,6 @@
 
     void onCollapse(bool collapsed)
     {
-        Console.WriteLine(collapsed);
         this.collapsed = collapsed;
     }
 

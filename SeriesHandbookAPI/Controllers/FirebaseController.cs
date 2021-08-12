@@ -20,7 +20,7 @@ namespace SeriesHandbookAPI.Controllers
         }
         [HttpGet]
         public async Task<IActionResult> Get()        {
-
+            
             var docRef = _db.Collection("RandomTest").Document("Version");
             var snap = await docRef.GetSnapshotAsync();
             if (snap.Exists)

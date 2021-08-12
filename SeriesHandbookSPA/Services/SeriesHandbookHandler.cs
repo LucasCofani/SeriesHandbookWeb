@@ -6,6 +6,8 @@ using SeriesHandbookShared.Models.TMDB.Series;
 using SeriesHandbookSPA.Authentication;
 using SeriesHandbookSPA.Network;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SeriesHandbookSPA.Services
@@ -23,14 +25,20 @@ namespace SeriesHandbookSPA.Services
             GetSerieSearch,
             GetSerieSearchNext,
             GetSerieSearchPrevious,
-            GetSerieSearchPage
+            GetSerieSearchPage,
+            SetSeriesBookmark,
+            GetSeriesBookmark,
+            GetSeriesBookmarkDetail,
         }
         public string Query { get; set; }
         public string Id { get; set; }
         public string Page { get; set; }
+        public bool Bookmark { get; set; }
         public ResponseWrapper<MoviesWrapper> Movies{ get; private set; }
         public ResponseWrapper<SeriesWrapper> Series { get; private set; }
         public ResponseWrapper<SearchWrapper> Search { get; private set; }
+
+        public List<ResponseWrapper<SeriesWrapper>> SeriesBookmark { get; private set; }
 
         private readonly SeriesHandbookApi _api;
         private readonly AuthenticationStateProvider authprovider;
@@ -61,8 +69,19 @@ namespace SeriesHandbookSPA.Services
                     case SeriesEvents.GetMovieSearchPage:
                         Search = await _api.GetMovieSearchPage(Query,Page);
                         break;
+
                     case SeriesEvents.GetSerieDetail:
-                        Series = await _api.GetSerieDetail(Id);
+                        if (SeriesBookmark!= null) { 
+                            var temp = SeriesBookmark.FirstOrDefault(p => p.Info.id.ToString() == Id);                       
+                            if (temp != null)
+                                Series = temp;
+                            else 
+                                Series = await _api.GetSerieDetail(Id);
+                        }
+                        else
+                            Series = await _api.GetSerieDetail(Id);
+                        
+                        Bookmark = await _api.GetSerieBookmarkDetail(Id);
                         break;
                     case SeriesEvents.GetSerieSearch:
                         Search = await _api.GetSerieSearch(Query);
@@ -75,6 +94,16 @@ namespace SeriesHandbookSPA.Services
                         break;
                     case SeriesEvents.GetSerieSearchPage:
                         Search = await _api.GetSerieSearchPage(Query,Page);
+                        break;
+                    case SeriesEvents.SetSeriesBookmark:
+                        await _api.SetSerieBookmark(Id);
+                        Bookmark = await _api.GetSerieBookmarkDetail(Id);
+                        break;
+                    case SeriesEvents.GetSeriesBookmark:
+                        SeriesBookmark = await _api.GetSerieBookmark();
+                        break;
+                    case SeriesEvents.GetSeriesBookmarkDetail:
+                        Bookmark = await _api.GetSerieBookmarkDetail(Id);
                         break;
                     default:
                         break;

@@ -45,6 +45,7 @@ namespace SeriesHandbookAPI
 
             services.Configure<FirebaseConfig>(Configuration.GetSection("Firebase"));
 
+            services.AddHttpContextAccessor();
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

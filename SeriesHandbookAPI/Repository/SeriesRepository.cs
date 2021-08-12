@@ -7,6 +7,11 @@ using SeriesHandbookShared.Models.TMDB.Search;
 using SeriesHandbookShared.Models.TMDB.Series;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System.Linq;
+using System.Security.Claims;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace SeriesHandbookAPI.Repository
 {
@@ -14,16 +19,18 @@ namespace SeriesHandbookAPI.Repository
     {
         private readonly FirestoreDb _db;
         private readonly TMDBApi _api;
+        private readonly IHttpContextAccessor _http;
         private static string _apiKey = null;
         private static int Page = 1;
         private static string Query = "";
         private static SearchWrapper PRes = null;
-        public SeriesRepository(IOptions<FirebaseConfig> options, TMDBApi api)
+        public SeriesRepository(IOptions<FirebaseConfig> options, TMDBApi api, IHttpContextAccessor http)
         {
             _db = FirestoreDb.Create(options.Value.ProjectId); ;
             _api = api;
+            _http = http;
         }
-        
+
         public async Task<ResponseWrapper<SeriesWrapper>> GetDetail(int key)
         {
             await GetApiFromDb();
@@ -133,6 +140,68 @@ namespace SeriesHandbookAPI.Repository
             }
             return ResponseWrapper<SearchWrapper>.Error("API key not found.");
         }
+        public async Task SetBookmark(int key)
+        {
+            var doc = _db.Collection("UserBookmarks").Document(_http.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var snap = await doc.GetSnapshotAsync();
+            if (snap.Exists) {
+                var tempDb = snap.ConvertTo<Dictionary<string, ArrayList>>();
+
+                var converted = tempDb["FavSeries"].ToArray();
+                
+                if (converted.FirstOrDefault(p => p.ToString() == key.ToString()) == null) {
+                    tempDb["FavSeries"].Add(key.ToString());
+                }
+                else
+                {
+                    tempDb["FavSeries"].Remove(key.ToString());
+                }
+                await doc.SetAsync(tempDb);
+            }
+            else
+            {
+                var tempdb = new Dictionary<string,object>();
+                
+                var favList = new ArrayList();
+                
+                favList.Add(key.ToString());
+                tempdb.Add("FavSeries", favList);
+
+                await doc.SetAsync(tempdb);
+            }
+        }
+        public async Task<bool> GetBookmarkDetail(int key)
+        {
+            var doc = _db.Collection("UserBookmarks").Document(_http.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var snap = await doc.GetSnapshotAsync();
+            if (snap.Exists)
+            {
+                var tempDb = snap.ConvertTo<Dictionary<string, ArrayList>>();
+                var converted = tempDb["FavSeries"].ToArray();
+                if (converted.FirstOrDefault(p => p.ToString() == key.ToString()) != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public async Task<List<ResponseWrapper<SeriesWrapper>>> GetBookmarkAll()
+        {
+            var doc = _db.Collection("UserBookmarks").Document(_http.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            var snap = await doc.GetSnapshotAsync();
+            if (snap.Exists)
+            {
+                var saida = new List<ResponseWrapper<SeriesWrapper>>();
+                var tempDb = snap.ConvertTo<Dictionary<string, ArrayList>>();
+                foreach (var item in tempDb["FavSeries"].ToArray())
+                {
+                    saida.Add(await GetDetail(Int32.Parse(item.ToString())));
+                }
+                return saida;
+            }
+            return default;
+        }
 
         private async Task GetApiFromDb()
         {
@@ -154,5 +223,8 @@ namespace SeriesHandbookAPI.Repository
         Task<ResponseWrapper<SearchWrapper>> SearchPreviousPage(string query);
         Task<ResponseWrapper<SearchWrapper>> SearchPage(string query,int page);
         Task<ResponseWrapper<SeriesWrapper>> GetDetail(int key);
+        Task<bool> GetBookmarkDetail(int key);
+        Task SetBookmark(int key);
+        Task<List<ResponseWrapper<SeriesWrapper>>> GetBookmarkAll();
     }
 }

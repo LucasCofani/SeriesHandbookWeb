@@ -29,38 +29,7 @@
     <TabPane Key="2">
         <TabTemplate>Detalhes</TabTemplate>
         <ChildContent>
-            @if (handler.Series == null)
-            {
-                <Empty>
-                    <DescriptionTemplate>
-                        <span>Nenhuma informação selecionada</span>
-                    </DescriptionTemplate>
-                </Empty>
-            }
-            else
-            {
-                <Descriptions Title="@handler.Series.Info.name" Bordered Column="@column">
-                    <DescriptionsItem Title="Capa">
-                        <Image Width="200px" Src="@string.Concat("https://image.tmdb.org/t/p/original/", handler.Series.Info.poster_path)" Alt="@handler.Series.Info.original_name" />
-                    </DescriptionsItem>
-                    <DescriptionsItem Title="Nome">@handler.Series.Info.name</DescriptionsItem>
-                    <DescriptionsItem Title="Nome Original">@handler.Series.Info.original_name</DescriptionsItem>
-                    <DescriptionsItem Title="Pais de origem">@string.Join(",", handler.Series.Info.origin_country)</DescriptionsItem>
-                    <DescriptionsItem Title="Linguagem original">@handler.Series.Info.original_language</DescriptionsItem>
-                    <DescriptionsItem Title="Popularidade">@handler.Series.Info.popularity</DescriptionsItem>
-                    <DescriptionsItem Title="Data de lançamento">@handler.Series.Info.first_air_date</DescriptionsItem>
-                    <DescriptionsItem Title="Data do ultimo episodio">@handler.Series.Info.last_air_date</DescriptionsItem>
-                    <DescriptionsItem Title="Quantidade de episodios">@handler.Series.Info.number_of_episodes</DescriptionsItem>
-                    <DescriptionsItem Title="Quantidade de temporadas">@handler.Series.Info.number_of_seasons</DescriptionsItem>
-                    <DescriptionsItem Title="Status da serie">@handler.Series.Info.status</DescriptionsItem>
-                    <DescriptionsItem Title="Genero">
-                        @foreach (var gen in handler.Series.Info.genres)
-                        {
-                            <p>@gen.name</p>
-                        }
-                    </DescriptionsItem>
-                </Descriptions>
-            }
+            <SeriesHandbookSPA.Components.SeriesDetail handler="@handler"></SeriesHandbookSPA.Components.SeriesDetail>
         </ChildContent>
     </TabPane>
 </Tabs>
@@ -69,14 +38,7 @@
 @code{
 
     private string tabKey = "1";
-    private Dictionary<string, int> column = new Dictionary<string, int> {
-            { "xxl", 3 },
-            { "xl", 3},
-            { "lg", 2},
-            { "md", 2},
-            { "sm", 1},
-            { "xs", 1}
-        };
+
 
     protected override async void OnInitialized()
     {
