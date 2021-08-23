@@ -21,6 +21,14 @@ namespace SeriesHandbookSPA.Network
         [Get("/api/Movies/{query}/{page}")]
         Task<ResponseWrapper<SearchWrapper>> GetMovieSearchPage(string query,string page);
 
+        [Post("/api/Movies/detail/{id}/bookmark")]
+        Task SetMovieBookmark(string id);
+        [Get("/api/Movies/detail/{id}/bookmark")]
+        Task<bool> GetMovieBookmarkDetail(string id);
+        [Get("/api/Movies/bookmark")]
+        Task<List<ResponseWrapper<MoviesWrapper>>> GetMovieBookmark();
+
+
         [Get("/api/Series/Detail/{id}")]
         Task<ResponseWrapper<SeriesWrapper>> GetSerieDetail(string id);
         [Get("/api/Series/{query}")]

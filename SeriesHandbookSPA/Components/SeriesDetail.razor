@@ -1,5 +1,5 @@
 ﻿
-@if (handler.Series == null)
+@if (handler.Series == null && handler.Movies == null)
 {
     <Empty>
         <DescriptionTemplate>
@@ -7,7 +7,7 @@
         </DescriptionTemplate>
     </Empty>
 }
-else
+else if (handler.Series != null)
 {
     <Button @onclick="Bookmark"><Icon Type="star" Theme="@(handler.Bookmark ?  "fill" : "outline")"></Icon></Button>
 
@@ -34,11 +34,35 @@ else
         <DescriptionsItem Title="Descrição">@handler.Series.Info.overview</DescriptionsItem>
     </Descriptions>
 }
+else if (handler.Movies != null)
+{
+    <Button @onclick="Bookmark"><Icon Type="star" Theme="@(handler.Bookmark ?  "fill" : "outline")"></Icon></Button>
+
+    <Descriptions Title="@handler.Movies.Info.title" Bordered Column="@column">
+        <DescriptionsItem Title="Capa">
+            <Image Width="200px" Src="@string.Concat("https://image.tmdb.org/t/p/original/", handler.Movies.Info.poster_path)" Alt="@handler.Movies.Info.original_title" />
+        </DescriptionsItem>
+        <DescriptionsItem Title="Nome">@handler.Movies.Info.title</DescriptionsItem>
+        <DescriptionsItem Title="Nome Original">@handler.Movies.Info.original_title</DescriptionsItem>
+        <DescriptionsItem Title="Linguagem original">@handler.Movies.Info.original_language</DescriptionsItem>
+        <DescriptionsItem Title="Popularidade">@handler.Movies.Info.popularity</DescriptionsItem>
+        <DescriptionsItem Title="Data de lançamento">@handler.Movies.Info.release_date</DescriptionsItem>
+        <DescriptionsItem Title="Status da serie">@handler.Movies.Info.status</DescriptionsItem>
+        <DescriptionsItem Title="Genero">
+            @foreach (var gen in handler.Movies.Info.genres)
+            {
+                <p>@gen.name</p>
+            }
+        </DescriptionsItem>
+        <DescriptionsItem Title="Descrição">@handler.Movies.Info.overview</DescriptionsItem>
+    </Descriptions>
+}
 @code{
 
 
     [Parameter]
-    public SeriesHandbookHandler handler { get; set; } 
+    public SeriesHandbookHandler handler { get; set; }
+
 
     private Dictionary<string, int> column = new Dictionary<string, int> {
             { "xxl", 3 },
@@ -50,6 +74,13 @@ else
         };
     private async Task Bookmark()
     {
-        await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.SetSeriesBookmark);
+        if (handler.Series != null)
+        {
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.SetSeriesBookmark);
+        }
+        else if (handler.Movies != null)
+        {
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.SetMoviesBookmark);
+        }
     }
 }

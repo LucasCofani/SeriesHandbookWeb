@@ -44,7 +44,7 @@ namespace SeriesHandbookSPA
             builder.Services.AddScoped<IWeatherService, WeatherService>();
 
             builder.Services.AddScoped<ISeriesHandbookService, SeriesHandbookService>();
-            builder.Services.AddScoped<SeriesHandbookHandler>();
+            builder.Services.AddTransient<SeriesHandbookHandler>();
 
             builder.Services.AddSingleton<MainStateContainer>();
 

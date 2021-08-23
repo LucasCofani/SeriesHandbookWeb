@@ -1,0 +1,63 @@
+﻿@page "/MoviesBookmark"
+@inject SeriesHandbookHandler handler
+@inject MainStateContainer mainState
+<Tabs DefaultActiveKey="1" @bind-ActiveKey="@tabKey" OnChange="Refresh">
+    <TabPane Key="1">
+        <TabTemplate>Favoritos</TabTemplate>
+        <ChildContent>
+            @if (handler.MoviesBookmark != null)
+            {
+                <AntList DataSource="@handler.MoviesBookmark" ItemLayout="@ListItemLayout.Vertical" TItem="ResponseWrapper<MoviesWrapper>" OnItemClick="GetDetail">
+                    <ChildContent Context="item">
+                        <ListItem Extra="@GetCover(item.Info.poster_path.ToString())">
+                            <ListItemMeta Description="@item.Info.original_title">
+                                <TitleTemplate>
+                                    @item.Info.title
+                                </TitleTemplate>
+                            </ListItemMeta>
+                            @item.Info.overview
+                        </ListItem>
+                    </ChildContent>
+                </AntList>
+            }
+        </ChildContent>
+    </TabPane>
+    <TabPane Key="2">
+        <TabTemplate>Detalhes</TabTemplate>
+        <ChildContent>
+            <SeriesHandbookSPA.Components.SeriesDetail handler="@handler"></SeriesHandbookSPA.Components.SeriesDetail>
+        </ChildContent>
+    </TabPane>
+</Tabs>
+@code {
+    private string tabKey = "1";
+
+    protected override async void OnInitialized()
+    {
+        await mainState.SetPageName("Filmes - Bookmark");
+        await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMoviesBookmark);
+        StateHasChanged();
+        mainState.OnChange += StateHasChanged;
+    }
+
+    private RenderFragment GetCover(string url)
+    {
+        return@<Image Width="200px" Src="@(string.Concat("https://image.tmdb.org/t/p/original/", url))" />;
+    }
+
+    private async Task GetDetail(ResponseWrapper<MoviesWrapper> result)
+    {
+        handler.Id = result.Info.id.ToString();
+        await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMovieDetail);
+        tabKey = "2";
+    }
+
+    private async Task Refresh()
+    {
+        if (tabKey == "1") {
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMoviesBookmark);
+            StateHasChanged();
+        }
+    }
+
+}

@@ -1,0 +1,79 @@
+﻿@page "/movies"
+@inject SeriesHandbookHandler handler
+@inject MainStateContainer mainState
+
+<Tabs DefaultActiveKey="1" @bind-ActiveKey="@tabKey">
+    <TabPane Key="1">
+        <TabTemplate>Pesquisa</TabTemplate>
+        <ChildContent>
+            <Search Placeholder="Procure pelo nome do filme" @bind-Value="@handler.Query" OnSearch="@Search" />
+            @if (handler.Search != null)
+            {
+                <br />
+                <br />
+                <h4>Busca: @handler.Query</h4>
+                <br />
+                <AntList DataSource="@handler.Search.Info.results" TItem="SeriesHandbookShared.Models.TMDB.Search.Result" Context="SearchItem" OnItemClick="GetDetail">
+                    <ListItem>
+                        <ListItemMeta Avatar="@string.Concat("https://image.tmdb.org/t/p/w185/", SearchItem.poster_path)" Description="@SearchItem.original_title">
+                            <TitleTemplate>
+                                <p>@SearchItem.title</p>
+                            </TitleTemplate>
+                        </ListItemMeta>
+                    </ListItem>
+                </AntList>
+                <Pagination Size="small" OnChange="OnChangePage" Total="@handler.Search.Info.total_pages" />
+            }
+        </ChildContent>
+    </TabPane>
+    <TabPane Key="2">
+        <TabTemplate>Detalhes</TabTemplate>
+        <ChildContent>
+            <SeriesHandbookSPA.Components.SeriesDetail handler="@handler"></SeriesHandbookSPA.Components.SeriesDetail>
+        </ChildContent>
+    </TabPane>
+</Tabs>
+
+
+@code{
+
+    private string tabKey = "1";
+
+
+    protected override async void OnInitialized()
+    {
+        await mainState.SetPageName("Filmes");
+        mainState.OnChange += StateHasChanged;
+    }
+
+    private async Task Search()
+    {
+        if (!string.IsNullOrEmpty(handler.Query))
+        {
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMovieSearch);
+        }
+    }
+    private async Task OnChangePage(PaginationEventArgs args)
+    {
+        if (args.Page == handler.Search.Info.page + 1)
+        {
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMovieSearchNext);
+
+        }
+        else if (args.Page == handler.Search.Info.page - 1)
+        {
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMovieSearchPrevious);
+        }
+        else
+        {
+            handler.Page = args.Page.ToString();
+            await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMovieSearchPage);
+        }
+    }
+    private async Task GetDetail(SeriesHandbookShared.Models.TMDB.Search.Result result)
+    {
+        handler.Id = result.id.ToString();
+        await handler.EventHandler(SeriesHandbookHandler.SeriesEvents.GetMovieDetail);
+        tabKey = "2";
+    }
+}

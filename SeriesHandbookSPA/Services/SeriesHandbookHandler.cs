@@ -21,6 +21,9 @@ namespace SeriesHandbookSPA.Services
             GetMovieSearchNext,
             GetMovieSearchPrevious,
             GetMovieSearchPage,
+            SetMoviesBookmark,
+            GetMoviesBookmark,
+            GetMoviesBookmarkDetail,
             GetSerieDetail,
             GetSerieSearch,
             GetSerieSearchNext,
@@ -39,6 +42,7 @@ namespace SeriesHandbookSPA.Services
         public ResponseWrapper<SearchWrapper> Search { get; private set; }
 
         public List<ResponseWrapper<SeriesWrapper>> SeriesBookmark { get; private set; }
+        public List<ResponseWrapper<MoviesWrapper>> MoviesBookmark { get; private set; }
 
         private readonly SeriesHandbookApi _api;
         private readonly AuthenticationStateProvider authprovider;
@@ -55,7 +59,18 @@ namespace SeriesHandbookSPA.Services
                 switch (seriesEvent)
                 {
                     case SeriesEvents.GetMovieDetail:
-                        Movies = await _api.GetMovieDetail(Id);
+                        if (MoviesBookmark != null)
+                        {
+                            var temp = MoviesBookmark.FirstOrDefault(p => p.Info.id.ToString() == Id);
+                            if (temp != null)
+                                Movies = temp;
+                            else
+                                Movies = await _api.GetMovieDetail(Id);
+                        }
+                        else
+                            Movies = await _api.GetMovieDetail(Id);
+                        Console.WriteLine(Movies);
+                        Bookmark = await _api.GetMovieBookmarkDetail(Id);
                         break;
                     case SeriesEvents.GetMovieSearch:
                         Search = await _api.GetMovieSearch(Query);
@@ -67,7 +82,7 @@ namespace SeriesHandbookSPA.Services
                         Search = await _api.GetMovieSearchPrevious(Query);
                         break;
                     case SeriesEvents.GetMovieSearchPage:
-                        Search = await _api.GetMovieSearchPage(Query,Page);
+                        Search = await _api.GetMovieSearchPage(Query, Page);
                         break;
 
                     case SeriesEvents.GetSerieDetail:
@@ -104,6 +119,17 @@ namespace SeriesHandbookSPA.Services
                         break;
                     case SeriesEvents.GetSeriesBookmarkDetail:
                         Bookmark = await _api.GetSerieBookmarkDetail(Id);
+                        break;
+
+                    case SeriesEvents.SetMoviesBookmark:
+                        await _api.SetMovieBookmark(Id);
+                        Bookmark = await _api.GetMovieBookmarkDetail(Id);
+                        break;
+                    case SeriesEvents.GetMoviesBookmark:
+                        MoviesBookmark = await _api.GetMovieBookmark();
+                        break;
+                    case SeriesEvents.GetMoviesBookmarkDetail:
+                        Bookmark = await _api.GetMovieBookmarkDetail(Id);
                         break;
                     default:
                         break;

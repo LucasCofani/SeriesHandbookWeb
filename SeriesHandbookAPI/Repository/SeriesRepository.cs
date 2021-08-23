@@ -165,6 +165,7 @@ namespace SeriesHandbookAPI.Repository
                 var favList = new ArrayList();
                 
                 favList.Add(key.ToString());
+                tempdb.Add("FavMov", favList);
                 tempdb.Add("FavSeries", favList);
 
                 await doc.SetAsync(tempdb);
