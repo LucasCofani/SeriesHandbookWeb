@@ -2,9 +2,44 @@
     constructor() {
         this.finished = false;
         this.token = "";
+        this.created = false;
+    }
+    CreateUser(email, pass) {
+        let parent = this;
+        firebase.auth()
+            .createUserWithEmailAndPassword(email, pass)
+            .then((userCredential) => {
+                parent.finished = true;
+                parent.created = true;
+            })
+            .catch((error) => {
+                console.log(error);
+                parent.finished = true;
+            });
+    }
+    LoginCredentials(email, pass) {
+        let parent = this;
+        firebase.auth().signInWithEmailAndPassword(email, pass)
+            .then(() => {
+                firebase
+                    .auth()
+                    .currentUser
+                    .getIdToken(true)
+                    .then((jwtToken) => {
+                        parent.finished = true;
+                        parent.token = jwtToken;
+                    }).catch((error) => {
+                        parent.finished = true;
+                    });
+                firebase.auth().signOut();
+            })
+            .catch((error) => {
+                console.log(error);
+                parent.finished = true;
+            });
     }
     Login(provider) {
-        var parent = this;
+        let parent = this;
         firebase
             .auth()
             .signInWithPopup(provider)
@@ -46,7 +81,8 @@ firebase.initializeApp(firebaseConfig);
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
 
 
-async function LoginGoogle() {
+export async function LoginGoogle() {
+
     let loginModel = new FirebaseAuthHelper();
 
     let providerGoogle = new firebase.auth.GoogleAuthProvider();
@@ -59,11 +95,26 @@ async function LoginGoogle() {
     // What access we are asking
     providerGoogle.addScope("profile");
 
-
     loginModel.Login(providerGoogle);
     while (!loginModel.finished) {
         await sleep(1000);
     }
     return loginModel.token;
 }
+export async function LoginCredentials(user, pass) {
+    let loginModel = new FirebaseAuthHelper();
 
+    loginModel.LoginCredentials(user, pass);
+    while (!loginModel.finished) {
+        await sleep(1000);
+    }
+    return loginModel.token;
+}
+export async function CreateUser(user, pass) {
+    let loginModel = new FirebaseAuthHelper();
+    loginModel.CreateUser(user, pass);
+    while (!loginModel.finished) {
+        await sleep(1000);
+    }
+    return loginModel.created;
+}

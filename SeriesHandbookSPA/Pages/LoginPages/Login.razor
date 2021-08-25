@@ -1,7 +1,6 @@
 ﻿@using System.ComponentModel.DataAnnotations;
-@using System.Text.Json;
 @inject AuthenticationStateProvider authProvider
-@inject IJSRuntime jsRunTime
+@inject IJSRuntime jsRuntime
 @inject NavigationManager Navigation
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager Navigation
@@ -10,8 +9,7 @@
 
 <CardGrid Style="width:50%">
     <Form Model="@model"
-          OnFinish="OnFinish"
-          OnFinishFailed="OnFinishFailed"
+          OnFinish="LogInCredentials"
           LabelColSpan="6"
           WrapperColSpan="14">
         <FormItem Label="Usuario">
@@ -24,12 +22,15 @@
             <Button Type="@ButtonType.Primary" HtmlType="submit">
                 Entrar
             </Button>
+            <Button Type="@ButtonType.Default" @onclick="CreateUser">
+                Criar usuario
+            </Button>
         </FormItem>
     </Form>
 </CardGrid>
 <CardGrid Style="width: 50%; box-shadow: 1px 0 0 0 #f0f0f0, 0 1px 0 0 #ffffff, 1px 1px 0 0 #f0f0f0, 1px 0 0 0 #f0f0f0 inset, 0 1px 0 0 #f0f0f0 inset;">
     <div>
-        <Button Block @onclick="LogIn"> Entrar com a conta Google </Button>
+        <Button Block @onclick="LogInGoogle"> Entrar com a conta Google </Button>
     </div>
 </CardGrid>
 @code
@@ -43,24 +44,40 @@
     }
 
     private Model model = new Model();
+    private Task<IJSObjectReference> _internalModule;
+    private Task<IJSObjectReference> Module => _internalModule ??= jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/Authentication.js").AsTask();
 
-    private void OnFinish(EditContext editContext)
+
+    private async Task LogInCredentials()
     {
-        Console.WriteLine($"Success:{JsonSerializer.Serialize(model)}");
+        var module = await Module;
+        var token = await module.InvokeAsync<string>("LoginCredentials", model.Username, model.Password);
+        if (!string.IsNullOrEmpty(token))
+        {
+            Console.WriteLine(token);
+            await((CustomAuthenticationStateProvider)authProvider).MarkUserAsAuthenticated();
+            Navigation.NavigateTo("/");
+        }
     }
 
-    private void OnFinishFailed(EditContext editContext)
+    private async Task LogInGoogle()
     {
-        Console.WriteLine($"Failed:{JsonSerializer.Serialize(model)}");
-    }
-    private async Task LogIn()
-    {
-        var token = await jsRunTime.InvokeAsync<String>("LoginGoogle");
+        var module = await Module;
+        var token = await module.InvokeAsync<string>("LoginGoogle");
         if (!string.IsNullOrEmpty(token))
         {
             await localStorage.SetItemAsync("tokenJWT", token);
             await ((CustomAuthenticationStateProvider)authProvider).MarkUserAsAuthenticated();
             Navigation.NavigateTo("/");
         }
+    }
+    private async Task CreateUser()
+    {
+        var module = await Module;
+        var created = await module.InvokeAsync<bool>("CreateUser", model.Username, model.Password);
+        if (created)
+            Console.WriteLine("Usuario criado com sucesso");
+        else
+            Console.WriteLine("Erro na criação do usuario");
     }
 }
